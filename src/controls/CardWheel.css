@@ -1,0 +1,62 @@
+.wrapper {
+	height: var(--height);
+	width: calc(2 * var(--width));
+	position: relative;
+	background: white;
+	z-index: 0;
+}
+
+.item {
+	--move-radio: 0;
+	position: absolute;
+	top: 0;
+	left: calc((var(--move-radio) + 0.5) * var(--width));
+	transform: scale(1);
+	opacity: 1;
+	transition-property: left,transform,opacity,z-index;
+	transition-duration: 0.5s;
+	transition-timing-function: ease-in-out;
+	z-index: 100;
+}
+
+.item.l1 {
+	--move-radio: -0.4;
+	transform: scale(0.7);
+	opacity: 0.8;
+	z-index: 70;
+}
+
+.item.l2 {
+	--move-radio: -0.7;
+	transform: scale(0.4);
+	opacity: 0.5;
+	z-index: 40;
+}
+
+.item.lx {
+	--move-radio: -0.8;
+	transform: scale(0.2);
+	opacity: 0;
+	z-index: 20;
+}
+
+.item.r1 {
+	--move-radio: 0.4;
+	transform: scale(0.7);
+	opacity: 0.8;
+	z-index: 70;
+}
+
+.item.r2 {
+	--move-radio: 0.7;
+	transform: scale(0.4);
+	opacity: 0.5;
+	z-index: 40;
+}
+
+.item.rx {
+	--move-radio: 0.8;
+	transform: scale(0.2);
+	opacity: 0;
+	z-index: 20;
+}

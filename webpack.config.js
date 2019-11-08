@@ -21,7 +21,7 @@ module.exports = function (env = '') {
 					test: /\.css$/,
 					use: [
 						'style-loader',
-						'css-loader?modules&localIdentName=[name]_[local]_[hash:base64:68]',
+						'css-loader?modules&localIdentName=egy_[name]_[local]_[hash:base64:8]',
 					],
 					include: [path.resolve(__dirname, 'src/control/')],
 				},
