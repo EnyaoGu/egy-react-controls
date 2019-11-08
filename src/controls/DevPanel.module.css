@@ -1,0 +1,28 @@
+.wrapper {
+	max-height: 600px;
+	max-width: 800px;
+	height: calc(100% - 40px);
+	width: calc(100% - 40px);
+	border-radius: 16px;
+	background: #F5F5F5;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px;
+}
+
+.controlContainer {
+	flex: 1 1 auto;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.debugPane {
+	padding: 12px;
+	background: white;
+	height: 100%;
+	width: 160px;
+	border-radius: 8px;
+}
