@@ -18,18 +18,20 @@ module.exports = function (env = '') {
 					options: { presets: ['@babel/react', '@babel/env'] }
 				},
 				{
-					test: /\.module\.css$/,
+					test: /\.css$/,
 					use: [
 						'style-loader',
-						'css-loader?modules',
+						'css-loader?modules&localIdentName=[name]_[local]_[hash:base64:68]',
 					],
+					include: [path.resolve(__dirname, 'src/control/')],
 				},
 				{
-					test: /(?<!\.module)\.css/,
+					test: /(?<!\.m)\.css/,
 					use: [
 						'style-loader',
 						'css-loader',
 					],
+					exclude: [path.resolve(__dirname, 'src/control/')],
 				},
 				{
 					test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from './DevPanel.module.css';
+import styles from './DevPanel.css';
 import { Button } from 'antd';
 import Card from './Card.jsx';
 
@@ -8,7 +8,7 @@ export default function DevPanel() {
 
 	return <div className={styles.wrapper}>
 		<div className={styles.controlContainer}>
-			<Card covered={cardCovered}></Card>
+				<Card covered={cardCovered}></Card>
 		</div>
 		<div className={styles.debugPane}>
 			<Button onClick={() => setCardCoverd(!cardCovered)}>Flip</Button>
