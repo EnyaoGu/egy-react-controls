@@ -1,7 +1,7 @@
 {
-   "name": "react-controls",
+   "name": "egy-react-controls",
    "version": "0.1.0",
-   "description": "Enyao's react control lib",
+   "description": "Enyao Gu's controls for react",
    "scripts": {
       "start": "npx webpack-dev-server",
       "build": "npx webpack --env prod",
