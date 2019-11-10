@@ -14,7 +14,8 @@
       "@babel/preset-env": "^7.0.0-rc.1",
       "@babel/preset-react": "^7.0.0-rc.1",
       "antd": "^3.23.6",
-      "babel-loader": "^8.0.2",
+	  "babel-loader": "^8.0.2",
+	  "bezier-js": "^2.4.4",
       "clean-webpack-plugin": "^3.0.0",
       "copy-webpack-plugin": "^5.0.4",
       "css-loader": "^1.0.0",
@@ -22,6 +23,7 @@
       "optimize-css-assets-webpack-plugin": "^5.0.3",
       "react": "^16.10.2",
       "react-dom": "^16.10.2",
+      "react-hammerjs": "^1.0.1",
       "react-scripts": "3.2.0",
       "style-loader": "^0.20.3",
       "uglifyjs-webpack-plugin": "^2.2.0",
@@ -30,8 +32,4 @@
       "webpack-dev-server": "^3.1.9"
    },
    "private": true,
-   "dependencies": {
-      "bezier-js": "^2.4.4",
-      "react-hammerjs": "^1.0.1"
-   }
 }
