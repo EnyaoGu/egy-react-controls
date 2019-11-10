@@ -9,7 +9,6 @@
 .front, .back {
 	border: 2px solid gray;
 	border-radius: 3%;
-	transition: transform 1s ease-in-out;
 	backface-visibility: hidden;
 	position: absolute;
 	top: 0; bottom: 0; left: 0; right: 0;
@@ -17,17 +16,11 @@
 }
 
 .front {
-	transform: rotateY(0deg);
+	transform: rotateY(var(--rotate));
 	background: #A0F5E0;
-}
-.wrapper.covered .front {
-	transform: rotateY(180deg);
 }
 
 .back {
-	transform: rotateY(180deg);
+	transform: rotateY(calc(180deg + var(--rotate)));
 	background: #F5A0E0;
-}
-.wrapper.covered .back {
-	transform: rotateY(360deg);
 }

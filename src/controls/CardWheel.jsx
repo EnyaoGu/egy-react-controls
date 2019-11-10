@@ -11,7 +11,7 @@ import Card from './Card.jsx';
 function positionToXY(p_position) {
 	const coerced = Math.max(-1, Math.min(1, p_position));
 	const x = Math.sin((Math.PI / 2) * coerced);
-	const y = Math.cos((Math.PI / 2) * coerced);
+	const y = 1 - Math.abs(coerced);
 	return { x, y };
 }
 
@@ -42,11 +42,11 @@ function useSpring(positionBeforePan, setPositionBeforePan) {
 
 	function doSpring() {
 		const currentTime = Date.now();
-		requestAnimationFrame(() => {
+		setTimeout(() => {
 			if (!springing) { return; }
 			const processChange = (Date.now() - currentTime) / springTimeInMs;
 			setProcess(processChange);
-		});
+		}, 20);
 	}
 
 	function startSpring(p_delta, p_velocity) {
@@ -76,7 +76,7 @@ function useSpring(positionBeforePan, setPositionBeforePan) {
 const CardWheel = forwardRef(({
 	height = 360,
 	width = 500,
-	vanishingAt = 160,
+	vanishingAt = 120,
 	visiibleSide = 3,
 	cards = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 }, ref) => {
@@ -150,16 +150,20 @@ const CardWheel = forwardRef(({
 			zIndex: Math.ceil(10000 * shrinkRatio), // z-index must be an integer
 		};
 
-		const [cardCovered, setCardCoverd] = useState(false);
-		const focused = key === index;
+		const [cardCovered, setCardCovered] = useState(false);
 
 		return <div key={key} className={styles.item} style={itemStyle}>
 			<div>
-				<Card covered={cardCovered} onClick={() => {
-					if (!panning && !springing && focused) {
-						setCardCoverd(!cardCovered);
-					}
-				}}></Card>
+				<Card
+					covered={cardCovered}
+					rotate={-60 * moveRatio}
+					animation={!panning && !springing}
+					onClick={() => {
+						if (!panning && !springing) {
+							setCardCovered(!cardCovered);
+						}
+					}}
+				></Card>
 			</div>
 		</div>;
 	});
