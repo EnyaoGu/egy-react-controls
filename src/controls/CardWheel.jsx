@@ -1,4 +1,4 @@
-import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, forwardRef, useImperativeHandle, useReducer } from 'react';
 import Hammer from 'react-hammerjs';
 import Bezier from 'bezier-js';
 import styles from './CardWheel.css';
@@ -26,17 +26,26 @@ function getSpringFunc(p_delta, p_velocity) {
 	return (p_process) => bezier.get(p_process).y;
 }
 
+function processReducer(process, change) {
+	if (change === 'reset') {
+		return 0;
+	}
+	if (isFinite(change)) {
+		return process + change;
+	}
+	return process;
+}
 function useSpring(position, setPosition) {
 	const [springFunc, setSpringFunc] = useState({});
-	const [process, setProcess] = useState(0);
+	const [process, setProcess] = useReducer(processReducer, 0);
 	const springing = !!springFunc.calculatePosition;
 
 	function doSpring() {
 		const currentTime = Date.now();
 		requestAnimationFrame(() => {
 			if (!springing) { return; }
-			const newProcess = process + (Date.now() - currentTime) / springTimeInMs;
-			setProcess(newProcess);
+			const processChange = (Date.now() - currentTime) / springTimeInMs;
+			setProcess(processChange);
 		});
 	}
 
@@ -49,7 +58,7 @@ function useSpring(position, setPosition) {
 		// Apply current spring distance into position
 		setPosition(position + springFunc.calculatePosition(Math.min(1, process)));
 		setSpringFunc({});
-		setProcess(0);
+		setProcess('reset');
 	}
 
 	let springDistance = 0;
@@ -66,7 +75,7 @@ function useSpring(position, setPosition) {
 
 const CardWheel = forwardRef(({
 	height = 360,
-	width = 1000,
+	width = 500,
 	vanishingAt = 160,
 	visiibleSide = 3,
 	cards = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
