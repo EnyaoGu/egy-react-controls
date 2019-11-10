@@ -29,5 +29,9 @@
       "webpack-cli": "^3.1.1",
       "webpack-dev-server": "^3.1.9"
    },
-   "private": true
+   "private": true,
+   "dependencies": {
+      "bezier-js": "^2.4.4",
+      "react-hammerjs": "^1.0.1"
+   }
 }

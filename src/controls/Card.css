@@ -7,6 +7,7 @@
 }
 
 .front, .back {
+	border: 2px solid gray;
 	border-radius: 3%;
 	transition: transform 1s ease-in-out;
 	backface-visibility: hidden;
