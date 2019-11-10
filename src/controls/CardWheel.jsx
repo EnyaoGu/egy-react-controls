@@ -35,7 +35,7 @@ function processReducer(process, change) {
 	}
 	return process;
 }
-function useSpring(position, setPosition) {
+function useSpring(positionBeforePan, setPositionBeforePan) {
 	const [springFunc, setSpringFunc] = useState({});
 	const [process, setProcess] = useReducer(processReducer, 0);
 	const springing = !!springFunc.calculatePosition;
@@ -56,7 +56,7 @@ function useSpring(position, setPosition) {
 	function stopSpring() {
 		if (!springing) { return; }
 		// Apply current spring distance into position
-		setPosition(position + springFunc.calculatePosition(Math.min(1, process)));
+		setPositionBeforePan(positionBeforePan + springFunc.calculatePosition(Math.min(1, process)));
 		setSpringFunc({});
 		setProcess('reset');
 	}
@@ -85,37 +85,60 @@ const CardWheel = forwardRef(({
 		'--width': `${width}px`,
 	};
 
-	const [position, setPosition] = useState(0);
+	const [index, setIndex] = useState(0);
+	const [indexSetterCache, setIndexSetterCache] = useState(NaN);
+	const [positionBeforePan, setPositionBeforePan] = useState(0);
+	function coerceIndex(p_position) {
+		return Math.max(0, Math.min(cards.length - 1, Math.round(p_position)));
+	}
 
-	// Handle panning and springFunc
+	// Handle panning with spring
 	const [panning, setPanning] = useState(false);
 	const [panDistance, setPanDistance] = useState(0);
-	const { springDistance, startSpring, stopSpring, springing } = useSpring(position, setPosition);
+	const { springDistance, startSpring, stopSpring, springing } = useSpring(positionBeforePan, setPositionBeforePan);
 	function handlePanStart() {
 		setPanning(true);
 		stopSpring();
 	}
 	function handlePan(p_event) {
-		setPanDistance(-p_event.deltaX * 2 / width);
+		const newPanDistance = -p_event.deltaX * 2 / width;
+		setPanDistance(newPanDistance);
+		setIndex(coerceIndex(positionBeforePan + newPanDistance));
 	}
 	function handlePanEnd(p_event) {
-		const endPanDistance = -p_event.deltaX * 2 / width;
-		const endPanVelocity = -p_event.velocityX * 2 / width;
-		const endPostion = position + endPanDistance;
 		setPanning(false);
-		// Merge panDistance in position
-		setPosition(endPostion);
+		const newPanDistance = -p_event.deltaX * 2 / width;
+		const panEndVelocity = -p_event.velocityX * 2 / width;
+		// Merge panDistance into positionBeforePan
+		const panEndPostion = positionBeforePan + newPanDistance;
+		setPositionBeforePan(panEndPostion);
 		setPanDistance(0);
-		// Start springFunc
-		const targetPosition = endPostion + endPanVelocity * springTimeInMs * 0.5;
-		const springDelta = Math.round(Math.max(0, Math.min(cards.length - 1, targetPosition))) - endPostion;
-		startSpring(springDelta, endPanVelocity);
+
+		let targetIndex;
+		if (isFinite(indexSetterCache)) {
+			targetIndex = coerceIndex(indexSetterCache);
+			setIndexSetterCache(NaN);
+		} else {
+			targetIndex = coerceIndex(panEndPostion + panEndVelocity * springTimeInMs * 0.5)
+		}
+		setIndex(targetIndex);
+
+		const springDelta = targetIndex - panEndPostion;
+		startSpring(springDelta, panEndVelocity);
 	}
 
-	const visualPosition = position + panDistance + springDistance;
+	const visualPosition = positionBeforePan + panDistance + springDistance;
 
 	useImperativeHandle(ref, () => ({
-		get index() { return Math.round(visualPosition); },
+		get index() { return index; },
+		set index(p_index) {
+			if (panning) { setIndexSetterCache(p_index); return; }
+			stopSpring();
+			const targetIndex = coerceIndex(p_index);
+			setIndex(targetIndex);
+			const springDelta = targetIndex - visualPosition;
+			startSpring(springDelta, 0);
+		},
 	}));
 
 	const items = cards.map((card, key) => {
@@ -128,7 +151,7 @@ const CardWheel = forwardRef(({
 		};
 
 		const [cardCovered, setCardCoverd] = useState(false);
-		const focused = key === Math.round(visualPosition);
+		const focused = key === index;
 
 		return <div key={key} className={styles.item} style={itemStyle}>
 			<div>
