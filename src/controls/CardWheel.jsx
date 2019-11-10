@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Hammer from 'react-hammerjs';
 import Bezier from 'bezier-js';
 import styles from './CardWheel.css';
@@ -15,14 +15,13 @@ function positionToXY(p_position) {
 	return { x, y };
 }
 
-const springInertia = 1;
-const springTimeInMs = 300;
+const springTimeInMs = 500;
 function getSpringFunc(p_delta, p_velocity) {
 	const bezier = new Bezier([
 		{ x: 0, y: 0 },
-		{ x: 1, y: p_velocity },
-		{ x: 2, y: p_delta },
+		{ x: 1, y: p_velocity * springTimeInMs / 4 },
 		{ x: 3, y: p_delta },
+		{ x: 4, y: p_delta },
 	]);
 	return (p_process) => bezier.get(p_process).y;
 }
@@ -35,6 +34,7 @@ function useSpring(position, setPosition) {
 	function doSpring() {
 		const currentTime = Date.now();
 		requestAnimationFrame(() => {
+			if (!springing) { return; }
 			const newProcess = process + (Date.now() - currentTime) / springTimeInMs;
 			setProcess(newProcess);
 		});
@@ -64,13 +64,13 @@ function useSpring(position, setPosition) {
 	return { springDistance, startSpring, stopSpring, springing };
 }
 
-export default function CardWheel({
+const CardWheel = forwardRef(({
 	height = 360,
-	width = 500,
+	width = 1000,
 	vanishingAt = 160,
 	visiibleSide = 3,
 	cards = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-}) {
+}, ref) => {
 	const wrapperStyle = {
 		'--height': `${height}px`,
 		'--width': `${width}px`,
@@ -91,18 +91,24 @@ export default function CardWheel({
 	}
 	function handlePanEnd(p_event) {
 		const endPanDistance = -p_event.deltaX * 2 / width;
+		const endPanVelocity = -p_event.velocityX * 2 / width;
 		const endPostion = position + endPanDistance;
 		setPanning(false);
 		// Merge panDistance in position
 		setPosition(endPostion);
 		setPanDistance(0);
 		// Start springFunc
-		const targetPosition = endPostion - p_event.velocityX * springInertia;
-		const springDelta = Math.round(Math.max(0, Math.min(cards.length, targetPosition))) - endPostion;
-		startSpring(springDelta, -p_event.velocityX);
+		const targetPosition = endPostion + endPanVelocity * springTimeInMs * 0.5;
+		const springDelta = Math.round(Math.max(0, Math.min(cards.length - 1, targetPosition))) - endPostion;
+		startSpring(springDelta, endPanVelocity);
 	}
 
 	const visualPosition = position + panDistance + springDistance;
+
+	useImperativeHandle(ref, () => ({
+		get index() { return Math.round(visualPosition); },
+	}));
+
 	const items = cards.map((card, key) => {
 		const itemPosition = key - visualPosition;
 		const { x: moveRatio, y: shrinkRatio } = positionToXY(itemPosition / (visiibleSide + 1));
@@ -134,4 +140,7 @@ export default function CardWheel({
 	><div className={styles.wrapper} style={wrapperStyle}>
 		{items}
 	</div></Hammer>
-}
+});
+
+
+export default CardWheel;
