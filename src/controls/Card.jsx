@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Card.css';
 import Bezier from 'bezier-js';
-
-const flipFunction = (new Bezier([
-	{ x: 0, y: 0},
-	{ x: 0.4, y: 0},
-	{ x: 0.6, y: 180},
-	{ x: 1, y: 180},
-]));
-function calculateFlipAngle(p_process) {
-	return flipFunction.get(p_process).y;
-}
+import { useTransition } from '../utilities/transition';
 
 const flipTimeInMs = 500;
+const flipSpeed = 1 / flipTimeInMs;
+const flipTransitionRefs = [
+	{ x: 0, y: 0},
+	{ x: 0.3, y: 0},
+	{ x: 0.7, y: 180},
+	{ x: 1, y: 180},
+];
 
 export default function Card({
 	height = 320,
@@ -21,21 +19,12 @@ export default function Card({
 	covered = false,
 	onClick,
 }) {
-	const [flipProcess, setFlipProcess] = useState(covered ? 1 : 0);
+	const [flipAngle] = useTransition(covered ? flipSpeed : -flipSpeed, flipTransitionRefs);
 	const wrapperStyle = {
 		'--height': `${height}px`,
 		'--width': `${width}px`,
-		'--rotate': `${rotate + calculateFlipAngle(flipProcess)}deg`,
+		'--rotate': `${rotate + flipAngle}deg`,
 	};
-
-	const targetFlipProcess = covered ? 1 : 0;
-	if (flipProcess !== targetFlipProcess) {
-		const current = Date.now();
-		setTimeout(() => {
-			const newProcess = Math.max(0, Math.min(1, flipProcess + (covered ? 1 : -1) * (Date.now() - current) / flipTimeInMs));
-			setFlipProcess(newProcess);
-		}, 20);
-	}
 
 	return <div
 		className={styles.wrapper}
