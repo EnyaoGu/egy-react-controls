@@ -1,5 +1,6 @@
 const tickRenders = new Set;
 
+let animationFrameID = null;
 function executeTickRenders(lastTick) {
 	const currentTick = Date.now();
 	const tickLength = currentTick - lastTick;
@@ -7,7 +8,7 @@ function executeTickRenders(lastTick) {
 		tickRenders.forEach((tickRender) => tickRender(tickLength));
 	}
 	if (tickRenders.size) {
-		requestAnimationFrame(() => executeTickRenders(currentTick));
+		animationFrameID = requestAnimationFrame(() => executeTickRenders(currentTick));
 	}
 }
 
@@ -20,4 +21,7 @@ export function addTickRender(p_callback) {
 
 export function removeTickRender(p_callback) {
 	tickRenders.delete(p_callback);
+	if (!tickRenders.size) {
+		cancelAnimationFrame(animationFrameID);
+	}
 }

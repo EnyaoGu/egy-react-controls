@@ -25,10 +25,10 @@ export function useTransition(speed, refs) {
 	const [{ process, moving }, doProcess] = useReducer(processReducer, initProcessState); 
 
 	useEffect(() => {
+		doProcess(1 * speed);
 		const tickRender = (tickLength) => {
 			doProcess((tickLength || 1) * speed);
 		};
-		tickRender();
 		if (!moving) { return; }
 		addTickRender(tickRender);
 		return () => removeTickRender(tickRender);
