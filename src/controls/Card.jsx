@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styles from './Card.css';
-import Bezier from 'bezier-js';
 import { useTransition } from '../utilities/transition';
 
 const flipTimeInMs = 500;
@@ -12,7 +11,7 @@ const flipTransitionRefs = [
 	{ x: 1, y: 180},
 ];
 
-export default function Card({
+function Card({
 	height = 320,
 	width = 240,
 	rotate = 0,
@@ -35,3 +34,5 @@ export default function Card({
 		<div className={styles.back}></div>
 	</div>;
 }
+
+export default Card;

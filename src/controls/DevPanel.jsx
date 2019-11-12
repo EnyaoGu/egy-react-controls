@@ -1,27 +1,24 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import styles from './DevPanel.css';
 import { Button } from 'antd';
 import CardWheel from './CardWheel.jsx';
 
 export default function DevPanel() {
 	const wheelRef = useRef();
-	useEffect(() => {
-		//
-	}, []);
+	const [wheelIndex, setWheelIndex] = useState(0);
+
 	return <div className={styles.wrapper}>
 		<div className={styles.controlContainer}>
-			<CardWheel ref={wheelRef}></CardWheel>
+			<CardWheel ref={wheelRef} onChange={setWheelIndex}></CardWheel>
 		</div>
 		<div className={styles.debugPane}>
-			<Button onClick={() => {
-				//
-			}}>Debug1</Button>
+			<div>{wheelIndex}</div>
 			<Button onClick={() => {
 				setTimeout(() => {
 					console.log('reset wheel index 4');
 					wheelRef.current.index = 4;
 				}, 1000);
-			}}>Debug2</Button>
+			}}>Debug</Button>
 		</div>
 	</div>
 }

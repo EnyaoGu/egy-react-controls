@@ -1,8 +1,8 @@
-import React, { useState, forwardRef, useImperativeHandle, useReducer } from 'react';
+import React, { useState, forwardRef, useImperativeHandle, useMemo, useCallback } from 'react';
 import Hammer from 'react-hammerjs';
-import Bezier from 'bezier-js';
 import styles from './CardWheel.css';
 import Card from './Card.jsx';
+import { useTransition } from '../utilities/transition';
 
 /**
  * Calculate the (x, y) of a position on the wheel circuit
@@ -16,64 +16,22 @@ function positionToXY(p_position) {
 }
 
 const springTimeInMs = 500;
-function getSpringFunc(p_delta, p_velocity) {
-	const bezier = new Bezier([
+const springSpeed = 1 / springTimeInMs;
+function getSpringRefs(distance, velocity) {
+	return [
 		{ x: 0, y: 0 },
-		{ x: 1, y: p_velocity * springTimeInMs / 4 },
-		{ x: 3, y: p_delta },
-		{ x: 4, y: p_delta },
-	]);
-	return (p_process) => bezier.get(p_process).y;
+		{ x: 1, y: velocity * springTimeInMs / 4 },
+		{ x: 3, y: distance },
+		{ x: 4, y: distance },
+	];
 }
 
-function processReducer(process, change) {
-	if (change === 'reset') {
-		return 0;
-	}
-	if (isFinite(change)) {
-		return process + change;
-	}
-	return process;
-}
-function useSpring(positionBeforePan, setPositionBeforePan) {
-	const [springFunc, setSpringFunc] = useState({});
-	const [process, setProcess] = useReducer(processReducer, 0);
-	const springing = !!springFunc.calculatePosition;
-
-	function doSpring() {
-		const currentTime = Date.now();
-		setTimeout(() => {
-			if (!springing) { return; }
-			const processChange = (Date.now() - currentTime) / springTimeInMs;
-			setProcess(processChange);
-		}, 20);
-	}
-
-	function startSpring(p_delta, p_velocity) {
-		setSpringFunc({ calculatePosition: getSpringFunc(p_delta, p_velocity)});
-	}
-
-	function stopSpring() {
-		if (!springing) { return; }
-		// Apply current spring distance into position
-		setPositionBeforePan(positionBeforePan + springFunc.calculatePosition(Math.min(1, process)));
-		setSpringFunc({});
-		setProcess('reset');
-	}
-
-	let springDistance = 0;
-	if (springing) {
-		if (process < 1) {
-			springDistance = springFunc.calculatePosition(process);
-			doSpring();
-		} else {
-			stopSpring();
-		}
-	}
-	return { springDistance, startSpring, stopSpring, springing };
+function coerceIndex(position, maxIndex) {
+	return Math.max(0, Math.min(maxIndex, Math.round(position)));
 }
 
 const CardWheel = forwardRef(({
+	onChange,
 	height = 360,
 	width = 500,
 	vanishingAt = 120,
@@ -86,61 +44,71 @@ const CardWheel = forwardRef(({
 	};
 
 	const [index, setIndex] = useState(0);
+	useMemo(() => onChange && onChange(index), [index]);
 	const [indexSetterCache, setIndexSetterCache] = useState(NaN);
-	const [positionBeforePan, setPositionBeforePan] = useState(0);
-	function coerceIndex(p_position) {
-		return Math.max(0, Math.min(cards.length - 1, Math.round(p_position)));
-	}
-
-	// Handle panning with spring
+	const [position, setPosition] = useState(0);
 	const [panning, setPanning] = useState(false);
 	const [panDistance, setPanDistance] = useState(0);
-	const { springDistance, startSpring, stopSpring, springing } = useSpring(positionBeforePan, setPositionBeforePan);
-	function handlePanStart() {
+	const [springStartVelocity, setSpringStartVelocity] = useState(0);
+
+	const springTransitionSpeed = useMemo(() => !panning && position !== index ? springSpeed : 0, [panning, position, index]);
+	const springTransitionRefs = useMemo(() => getSpringRefs(index - position, springStartVelocity), [position, index, springStartVelocity]);
+	const [springDistance, springing, resetSpring] = useTransition(springTransitionSpeed, springTransitionRefs);
+
+	// Pan handlers
+	const handlePanStart = useCallback(() => {
 		setPanning(true);
-		stopSpring();
-	}
-	function handlePan(p_event) {
+		// Merge springDistance into position
+		setPosition(position + springDistance);
+		resetSpring();
+	}, [position, springDistance]);
+	const handlePan = useCallback((p_event) => {
 		const newPanDistance = -p_event.deltaX * 2 / width;
 		setPanDistance(newPanDistance);
-		setIndex(coerceIndex(positionBeforePan + newPanDistance));
-	}
-	function handlePanEnd(p_event) {
+		const newIndex = coerceIndex(position + newPanDistance, cards.length - 1);
+		setIndex(newIndex);
+	}, [position, cards, width]);
+	const handlePanEnd = useCallback((p_event) => {
 		setPanning(false);
+
 		const newPanDistance = -p_event.deltaX * 2 / width;
 		const panEndVelocity = -p_event.velocityX * 2 / width;
-		// Merge panDistance into positionBeforePan
-		const panEndPostion = positionBeforePan + newPanDistance;
-		setPositionBeforePan(panEndPostion);
+		// Merge panDistance into position
+		const panEndPostion = position + newPanDistance;
+		setPosition(panEndPostion);
 		setPanDistance(0);
 
+		// Update index
 		let targetIndex;
 		if (isFinite(indexSetterCache)) {
-			targetIndex = coerceIndex(indexSetterCache);
+			targetIndex = coerceIndex(indexSetterCache, cards.length - 1);
 			setIndexSetterCache(NaN);
 		} else {
-			targetIndex = coerceIndex(panEndPostion + panEndVelocity * springTimeInMs * 0.5)
+			targetIndex = coerceIndex(panEndPostion + panEndVelocity * springTimeInMs * 0.5, cards.length - 1);
 		}
 		setIndex(targetIndex);
-
-		const springDelta = targetIndex - panEndPostion;
-		startSpring(springDelta, panEndVelocity);
-	}
-
-	const visualPosition = positionBeforePan + panDistance + springDistance;
+		setSpringStartVelocity(panEndVelocity);
+	}, [position, indexSetterCache, cards, width]);
+	useMemo(() => {
+		if (!springing) {
+			// Merge springDistance into position
+			setPosition(position + springDistance);
+			setSpringStartVelocity(0);
+		}
+	}, [springing]);
 
 	useImperativeHandle(ref, () => ({
-		get index() { return index; },
+		get index() { return index },
 		set index(p_index) {
 			if (panning) { setIndexSetterCache(p_index); return; }
-			stopSpring();
-			const targetIndex = coerceIndex(p_index);
+			resetSpring();
+			const targetIndex = coerceIndex(p_index, cards.length - 1);
 			setIndex(targetIndex);
-			const springDelta = targetIndex - visualPosition;
-			startSpring(springDelta, 0);
+			setSpringStartVelocity(0);
 		},
-	}));
+	}), [index, panning, cards]);
 
+	const visualPosition = position + panDistance + springDistance;
 	const items = cards.map((card, key) => {
 		const itemPosition = key - visualPosition;
 		const { x: moveRatio, y: shrinkRatio } = positionToXY(itemPosition / (visiibleSide + 1));

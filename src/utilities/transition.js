@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useReducer } from 'react';
+import { useEffect, useMemo, useReducer } from 'react';
 import Bezier from 'bezier-js';
 import { addTickRender, removeTickRender } from './animationTicker';
 
@@ -35,7 +35,7 @@ export function useTransition(speed, refs) {
 	}, [moving, speed]);
 
 	const transFunc = useMemo(() => wrapTransFunc(refs), [refs]);
-	const transitionValue = useMemo(() => transFunc(process), [process, transFunc]);
+	const value = useMemo(() => transFunc(process), [process, transFunc]);
 	function reset() { doProcess(NaN); }
-	return [transitionValue, reset];
+	return [value, moving, reset];
 }
