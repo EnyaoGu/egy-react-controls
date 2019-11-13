@@ -36,15 +36,21 @@ const CardWheel = forwardRef(({
 	width = 500,
 	vanishingAt = 120,
 	visiibleSide = 3,
-	cards = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+	cardHeight,
+	cardWidth,
+	onCardClick,
+	cards = [],
 }, ref) => {
 	const wrapperStyle = {
 		'--height': `${height}px`,
 		'--width': `${width}px`,
 	};
 
-	const [index, setIndex] = useState(0);
-	useMemo(() => onChange && onChange(index), [index]);
+	const [index, setIndexState] = useState(0);
+	const setIndex = useCallback((newIndex) => {
+		setIndexState(newIndex);
+		onChange && onChange(newIndex);
+	}, onChange);
 	const [indexSetterCache, setIndexSetterCache] = useState(NaN);
 	const [position, setPosition] = useState(0);
 	const [panning, setPanning] = useState(false);
@@ -106,11 +112,12 @@ const CardWheel = forwardRef(({
 			setIndex(targetIndex);
 			setSpringStartVelocity(0);
 		},
-	}), [index, panning, cards]);
+		get moving() { return panning || springing; }
+	}), [index, panning, cards, springing]);
 
 	const visualPosition = position + panDistance + springDistance;
-	const items = cards.map((card, key) => {
-		const itemPosition = key - visualPosition;
+	const items = cards.map((card, cardIndex) => {
+		const itemPosition = cardIndex - visualPosition;
 		const { x: moveRatio, y: shrinkRatio } = positionToXY(itemPosition / (visiibleSide + 1));
 		const itemStyle = {
 			'--move-ratio': moveRatio * (1 - vanishingAt / width),
@@ -118,21 +125,16 @@ const CardWheel = forwardRef(({
 			zIndex: Math.ceil(10000 * shrinkRatio), // z-index must be an integer
 		};
 
-		const [cardCovered, setCardCovered] = useState(false);
-
-		return <div key={key} className={styles.item} style={itemStyle}>
-			<div>
-				<Card
-					covered={cardCovered}
-					rotate={-60 * moveRatio}
-					animation={!panning && !springing}
-					onClick={() => {
-						if (!panning && !springing) {
-							setCardCovered(!cardCovered);
-						}
-					}}
-				></Card>
-			</div>
+		return <div key={cardIndex} className={styles.item} style={itemStyle}>
+			<Card
+				covered={card.covered}
+				front={card.front}
+				back={card.back}
+				rotate={-60 * moveRatio}
+				onClick={() => onCardClick(cardIndex)}
+				height={cardHeight}
+				width={cardWidth}
+			></Card>
 		</div>;
 	});
 	return <Hammer
