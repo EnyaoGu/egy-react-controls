@@ -14,6 +14,8 @@ const flipTransitionRefs = [
 function Card({
 	height = 320,
 	width = 240,
+	front,
+	back,
 	rotate = 0,
 	covered = false,
 	onClick,
@@ -30,8 +32,8 @@ function Card({
 		style={wrapperStyle}
 		onClick={onClick}
 	>
-		<div className={styles.front}></div>
-		<div className={styles.back}></div>
+		<div className={styles.front}>{front}</div>
+		<div className={styles.back}>{back}</div>
 	</div>;
 }
 
