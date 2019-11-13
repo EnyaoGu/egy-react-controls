@@ -50,7 +50,7 @@ const CardWheel = forwardRef(({
 	const setIndex = useCallback((newIndex) => {
 		setIndexState(newIndex);
 		onChange && onChange(newIndex);
-	}, onChange);
+	}, [onChange]);
 	const [indexSetterCache, setIndexSetterCache] = useState(NaN);
 	const [position, setPosition] = useState(0);
 	const [panning, setPanning] = useState(false);

@@ -4,16 +4,16 @@ import { Button } from 'antd';
 import CardWheel from './CardWheel.jsx';
 
 const initCards = [
-	{ covered: false, front: '0', back: 'X' },
-	{ covered: false, front: '1', back: 'X' },
-	{ covered: false, front: '2', back: 'X' },
-	{ covered: false, front: '3', back: 'X' },
-	{ covered: false, front: '4', back: 'X' },
-	{ covered: false, front: '5', back: 'X' },
-	{ covered: false, front: '6', back: 'X' },
-	{ covered: false, front: '7', back: 'X' },
-	{ covered: false, front: '8', back: 'X' },
-	{ covered: false, front: '9', back: 'X' },
+	{ covered: true },
+	{ covered: false },
+	{ covered: true },
+	{ covered: false },
+	{ covered: true },
+	{ covered: false },
+	{ covered: true },
+	{ covered: false },
+	{ covered: true },
+	{ covered: false },
 ];
 function cardsReducer(cards, action) {
 	switch(action.type) {

@@ -7,22 +7,26 @@ function wrapTransFunc(refs) {
 	return (process) => bezier.get(process).y;
 }
 
-const initProcessState = { process: 0, moving: false };
 function processReducer({ process }, change) {
 	if (isFinite(change)) {
 		const newProcess = Math.max(0, Math.min(1, process + change));
 		const stillMoving = newProcess !== process;
 		return { process: newProcess, moving: stillMoving };
 	}
-	return initProcessState;
+	switch(change) {
+	case 'resetStart':
+		return { process: 0, moving: false };
+	case 'resetEnd':
+		return { process: 0, moving: false };
+	}
 };
 
 /**
  * Use an value that change with time align a bezier function
  * @param {Number} speed the transition speed in %/ms
  */
-export function useTransition(speed, refs) {
-	const [{ process, moving }, doProcess] = useReducer(processReducer, initProcessState); 
+export function useTransition(speed, refs, initProcess = 0) {
+	const [{ process, moving }, doProcess] = useReducer(processReducer, { process: initProcess, moving: false }); 
 
 	useEffect(() => {
 		doProcess(1 * speed);
@@ -36,6 +40,7 @@ export function useTransition(speed, refs) {
 
 	const transFunc = useMemo(() => wrapTransFunc(refs), [refs]);
 	const value = useMemo(() => transFunc(process), [process, transFunc]);
-	function reset() { doProcess(NaN); }
-	return [value, moving, reset];
+	function resetStart() { doProcess('resetStart'); }
+	function resetEnd() { doProcess('resetEnd'); }
+	return [value, moving, resetStart, resetEnd];
 }

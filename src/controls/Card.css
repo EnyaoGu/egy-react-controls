@@ -7,27 +7,37 @@
 }
 
 .front, .back {
-	border-radius: 3%;
 	backface-visibility: hidden;
 	position: absolute;
 	top: 0; bottom: 0; left: 0; right: 0;
 	pointer-events: all;
-
-	text-align: center;
-	font-size: calc(0.6 * var(--height));
-	line-height: var(--height);
 }
 
 .front {
-	border: 2px solid #222;
 	transform: rotateY(var(--rotate));
+}
+
+.back {
+	transform: rotateY(calc(180deg + var(--rotate)));
+}
+
+.frontPlaceholder, .backPlaceholder {
+	border-radius: 3%;
+	text-align: center;
+	font-size: calc(0.6 * var(--height));
+	line-height: var(--height);
+	height: 100%;
+	width: 100%
+}
+
+.frontPlaceholder {
+	border: 2px solid #222;
 	background: #EEE;
 	color: #222;
 }
 
-.back {
+.backPlaceholder {
 	border: 3px solid #AAA;
-	transform: rotateY(calc(180deg + var(--rotate)));
 	background: #222;
 	color: #AAA;
 }
